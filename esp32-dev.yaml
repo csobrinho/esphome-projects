@@ -1,7 +1,7 @@
 esphome:
   name: "${name}"
   friendly_name: "${friendly_name}"
-  area: "${room}"
+  area: "${area}"
   min_version: 2025.9.0
   name_add_mac_suffix: false
   project:
