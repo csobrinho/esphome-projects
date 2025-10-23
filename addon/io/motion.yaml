@@ -1,0 +1,10 @@
+# PIR Motion Sensor.
+#
+# Add this to the esphome config under substitutions to set the PIR GPIO for the sensor.
+#  motion_pin: GPIO01
+#
+binary_sensor:
+  - platform: gpio # https://esphome.io/components/binary_sensor/gpio/
+    pin: ${motion_pin}
+    name: "PIR Motion Sensor"
+    device_class: motion

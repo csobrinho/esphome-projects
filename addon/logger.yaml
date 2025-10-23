@@ -1,0 +1,2 @@
+# Enable logging https://esphome.io/components/logger/
+logger:

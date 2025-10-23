@@ -1,0 +1,24 @@
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${room}"
+  min_version: 2025.9.0
+  name_add_mac_suffix: false
+  project:
+    name: "${project}"
+    version: "${version}"
+
+esp32:
+  variant: esp32c3
+  framework:
+    type: esp-idf
+    version: recommended
+
+packages:
+  - !include ../addons/logger.yaml
+  - !include ../addons/network.yaml
+  - !include ../addons/ota.yaml
+  - !include ../addons/restart.yaml
+  - !include ../addons/safe_mode.yaml
+  - !include ../addons/time.yaml
+  - !include ../addons/webserver.yaml

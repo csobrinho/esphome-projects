@@ -1,0 +1,74 @@
+binary_sensor:
+  # Online Status https://esphome.io/components/binary_sensor/status/
+  - platform: status
+    name: "Online"
+    id: status_sensor
+    icon: mdi:check-network
+
+sensor:
+  # Uptime https://esphome.io/components/sensor/uptime/
+  - platform: uptime
+    name: "Uptime Sensor"
+    id: uptime_sensor
+    entity_category: diagnostic
+    internal: true
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds / 60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  # Wifi Signal Strength https://esphome.io/components/sensor/wifi_signal/
+  - platform: wifi_signal
+    name: "Wifi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: "diagnostic"
+    internal: true
+
+  # Wifi Signal Strength.
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "Wifi Strength"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "%"
+    icon: mdi:wifi
+    entity_category: "diagnostic"
+    device_class: ""
+
+text_sensor:
+  # IP Address https://esphome.io/components/text_sensor/wifi_info/
+  - platform: wifi_info
+    ip_address:
+      name: IP Address
+      icon: mdi:ip-network
+
+  # ESPHome Version https://esphome.io/components/text_sensor/version/
+  - platform: version
+    name: Version
+    icon: mdi:package-variant-closed
+    hide_timestamp: true
+
+  # Human-Readable Uptime
+  #
+  # This is a bit of an unusual "template" as the actual templating is done
+  # entirely within the automation action of the uptime sensor
+  - platform: template
+    name: Uptime Human
+    id: uptime_human
+    entity_category: diagnostic
+    icon: mdi:clock-start

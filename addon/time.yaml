@@ -1,0 +1,4 @@
+# Setup real time clock time sources https://esphome.io/components/time/
+time:
+  - platform: homeassistant # https://esphome.io/components/time/homeassistant/
+    id: homeassistant_time

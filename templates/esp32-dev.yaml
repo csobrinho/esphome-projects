@@ -1,0 +1,22 @@
+substitutions:
+  name: lights
+  friendly_name: Lights
+  area: Kitchen
+  project: lights.cwww
+  version: 1.0
+
+api:
+  encryption:
+    key: !secret encryption_key
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+packages:
+  base:
+    url: https://github.com/csobrinho/esphome-projects/
+    refresh: 1sec
+    files:
+      - path: base/esp32-dev.yaml
+      # - path: addons/io/light_cwww.yaml
+      #   vars: { name: "Sink", dev: "sink", led_cw_pin: GPIO21, led_ww_pin: GPIO19 }

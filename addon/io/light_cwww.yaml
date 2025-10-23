@@ -1,0 +1,32 @@
+# Light CWWW (cold and warm white). https://esphome.io/components/light/
+#
+# Add this to the esphome config under substitutions to set the light config for the output.
+#  name: "Sink"
+#  dev: "sink"
+#  led_cw_pin: GPIO18
+#  led_ww_pin: GPIO5
+#
+# and globally:
+#  frequency: 610Hz
+#
+light:
+  - platform: cwww # https://esphome.io/components/light/cwww/
+    name: "${name} Light"
+    cold_white: ${dev}_cw
+    warm_white: ${dev}_ww
+    cold_white_color_temperature: 6000 K
+    warm_white_color_temperature: 2700 K
+    default_transition_length: 2s
+    constant_brightness: true
+    gamma_correct: 0
+
+output:
+  - platform: ledc # https://esphome.io/components/output/ledc/
+    pin: ${led_cw_pin}
+    frequency: ${frequency}
+    id: ${dev}_cw
+
+  - platform: ledc # https://esphome.io/components/output/ledc/
+    pin: ${led_ww_pin}
+    frequency: ${frequency}
+    id: ${dev}_ww

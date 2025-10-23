@@ -1,0 +1,5 @@
+# Restart Button https://esphome.io/components/button/restart/
+button:
+  - platform: restart
+    id: restart_button
+    name: Restart

@@ -1,0 +1,5 @@
+# Bluetooth Tracker https://esphome.io/components/esp32_ble_tracker/
+#
+# This config is optimized for dual core devices. For single core devices like ESP32-C3, see
+# https://esphome.io/components/esp32_ble_tracker/#use-on-single-core-chips.
+esp32_ble_tracker:
