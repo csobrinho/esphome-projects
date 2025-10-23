@@ -18,5 +18,5 @@ packages:
     refresh: 1sec
     files:
       - path: base/esp32-dev.yaml
-      # - path: addons/io/light_cwww.yaml
+      # - path: addon/io/light_cwww.yaml
       #   vars: { name: "Sink", dev: "sink", led_cw_pin: GPIO21, led_ww_pin: GPIO19 }
