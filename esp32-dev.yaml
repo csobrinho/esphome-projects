@@ -9,7 +9,7 @@ esphome:
     version: "${version}"
 
 esp32:
-  variant: esp32dev
+  board: esp32dev
   framework:
     type: esp-idf
     version: recommended
