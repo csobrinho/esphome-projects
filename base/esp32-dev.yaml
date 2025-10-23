@@ -14,13 +14,12 @@ esp32:
     type: esp-idf
     version: recommended
 
-packages:
-  - !include ../addons/bluetooth_ble.yaml
-  - !include ../addons/bluetooth_proxy.yaml
-  - !include ../addons/logger.yaml
-  - !include ../addons/network.yaml
-  - !include ../addons/ota.yaml
-  - !include ../addons/restart.yaml
-  - !include ../addons/safe_mode.yaml
-  - !include ../addons/time.yaml
-  - !include ../addons/webserver.yaml
+<<: !include ../addons/bluetooth_ble.yaml
+<<: !include ../addons/bluetooth_proxy.yaml
+<<: !include ../addons/logger.yaml
+<<: !include ../addons/network.yaml
+<<: !include ../addons/ota.yaml
+<<: !include ../addons/restart.yaml
+<<: !include ../addons/safe_mode.yaml
+<<: !include ../addons/time.yaml
+<<: !include ../addons/webserver.yaml
