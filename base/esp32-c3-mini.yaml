@@ -1,7 +1,7 @@
 esphome:
   name: "${name}"
   friendly_name: "${friendly_name}"
-  area: "${room}"
+  area: "${area}"
   min_version: 2025.9.0
   name_add_mac_suffix: false
   project:
@@ -15,10 +15,10 @@ esp32:
     version: recommended
 
 packages:
-  - !include ../addons/logger.yaml
-  - !include ../addons/network.yaml
-  - !include ../addons/ota.yaml
-  - !include ../addons/restart.yaml
-  - !include ../addons/safe_mode.yaml
-  - !include ../addons/time.yaml
-  - !include ../addons/webserver.yaml
+  - !include ../addon/logger.yaml
+  - !include ../addon/network.yaml
+  - !include ../addon/ota.yaml
+  - !include ../addon/restart.yaml
+  - !include ../addon/safe_mode.yaml
+  - !include ../addon/time.yaml
+  - !include ../addon/webserver.yaml

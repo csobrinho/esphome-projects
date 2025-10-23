@@ -1,0 +1,25 @@
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${area}"
+  min_version: 2025.9.0
+  name_add_mac_suffix: false
+  project:
+    name: "${project}"
+    version: "${version}"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: recommended
+
+<<: !include ../addon/bluetooth_ble.yaml
+<<: !include ../addon/bluetooth_proxy.yaml
+<<: !include ../addon/logger.yaml
+<<: !include ../addon/network.yaml
+<<: !include ../addon/ota.yaml
+<<: !include ../addon/restart.yaml
+<<: !include ../addon/safe_mode.yaml
+<<: !include ../addon/time.yaml
+<<: !include ../addon/webserver.yaml
