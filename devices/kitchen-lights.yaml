@@ -22,10 +22,10 @@ packages:
     files:
       - path: base/esp32-dev.yaml
       - path: addon/io/light_cwww.yaml
-        vars: { name: "Upper", dev: "upper", led_cw_pin: GPIO18, led_ww_pin: GPIO5 }
+        vars: { name: "Upper", dev: "upper", led_cw_pin: GPIO18, led_ww_pin: { number: GPIO5, ignore_strapping_warning: true } }
       - path: addon/io/light_cwww.yaml
         vars: { name: "Middle", dev: "middle", led_cw_pin: GPIO23, led_ww_pin: GPIO22 }
       - path: addon/io/light_cwww.yaml
         vars: { name: "Sink", dev: "sink", led_cw_pin: GPIO21, led_ww_pin: GPIO19 }
       - path: addon/io/light_cwww.yaml
-        vars: { name: "Wine", dev: "wine", led_cw_pin: GPIO4, led_ww_pin: GPIO2 }
+        vars: { name: "Wine", dev: "wine", led_cw_pin: GPIO4, led_ww_pin: { number: GPIO2, ignore_strapping_warning: true } }
