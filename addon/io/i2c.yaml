@@ -1,0 +1,9 @@
+# I2C Bus Component https://esphome.io/components/i2c/
+#
+# Add this to the esphome config under substitutions to set the I2C GPIOs for the bus.
+#  i2c_sda_pin: GPIO26
+#  i2c_scl_pin: GPIO27
+i2c:
+  sda: ${i2c_sda_pin}
+  scl: ${i2c_scl_pin}
+  id: i2c_bus

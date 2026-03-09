@@ -1,0 +1,24 @@
+substitutions:
+  name: sink-camera
+  friendly_name: Sink Camera
+  area: Kitchen
+  project: cam.mouse
+  version: "1.0"
+  i2c_sda_pin: GPIO26
+  i2c_scl_pin: GPIO27
+  camera_resolution: "640x480"
+
+api:
+  encryption:
+    key: !secret encryption_key
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+
+packages:
+  base:
+    url: https://github.com/csobrinho/esphome-projects/
+    refresh: 2sec
+    files:
+      - path: base/esp32-cam.yaml

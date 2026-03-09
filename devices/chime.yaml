@@ -1,0 +1,83 @@
+substitutions:
+  name: chime
+  friendly_name: Chime
+  area: Main Entry
+  project: io.chime
+  version: "1.0"
+  status_led_pin: GPIO08
+
+api:
+  encryption:
+    key: !secret encryption_key
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Avoid AUTH_EXPIRED issues. See https://www.reddit.com/r/Esphome/comments/1jhhdud/comment/mkn0usp/
+  output_power: 8.5db
+
+packages:
+  base:
+    url: https://github.com/csobrinho/esphome-projects/
+    refresh: 1sec
+    ref: main
+    files: [base/esp32-c3-mini.yaml]
+
+output:
+  - platform: gpio
+    id: output_left_right_chime
+    pin:
+      number: GPIO00
+      inverted: true
+      mode:
+        output: true
+        open_drain: true
+
+  - platform: gpio
+    id: output_right_chime
+    pin:
+      number: GPIO01
+      inverted: true
+      mode:
+        output: true
+        open_drain: true
+
+globals:
+  - id: chime_delay_ms
+    type: int
+    restore_value: true
+    initial_value: $default_chime_delay
+
+number:
+  - platform: template
+    id: chime_delay_number
+    name: "Chime Delay"
+    icon: "mdi:timer"
+    unit_of_measurement: ms
+    min_value: 20
+    max_value: 200
+    step: 10
+    mode: box
+    lambda: "return id(chime_delay_ms);"
+    set_action:
+      - globals.set:
+          id: chime_delay_ms
+          value: !lambda "return x;"
+
+button:
+  - platform: template
+    id: left_right_chime
+    name: "Left + Right Chime"
+    icon: "mdi:alarm-bell"
+    on_press:
+      - output.turn_on: output_left_right_chime
+      - delay: !lambda "return id(chime_delay_ms);"
+      - output.turn_off: output_left_right_chime
+
+  - platform: template
+    id: right_chime
+    name: "Right Chime"
+    icon: "mdi:alarm-bell"
+    on_press:
+      - output.turn_on: output_right_chime
+      - delay: !lambda "return id(chime_delay_ms);"
+      - output.turn_off: output_right_chime

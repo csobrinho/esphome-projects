@@ -1,0 +1,70 @@
+# Camera Component https://esphome.io/components/esp32_camera/
+#
+# Add this to the esphome config under substitutions to set the camera GPIOs for the device.
+#  camera_resolution: 640x480
+esp32_camera:
+  name: "${friendly_name}"
+
+  # AI-Thinker ESP32-CAM pinout.
+  # See https://esphome.io/components/esp32_camera/#configuration-examples
+  external_clock:
+    #           | arduino | esp-idf
+    # ----------+---------+----------
+    #  8MHz 640 | 4.2 fps |
+    # 16MHz 640 | 6.7 fps | 5.7 fps
+    # 16MHz 800 | 4.5 fps |
+    # 20MHz     | too many issues
+    frequency: 16MHz
+    pin:
+      number: GPIO0
+      ignore_strapping_warning: true
+  i2c_id: i2c_bus
+  data_pins:
+    - number: GPIO5
+      ignore_strapping_warning: true
+    - GPIO18
+    - GPIO19
+    - GPIO21
+    - GPIO36
+    - GPIO39
+    - GPIO34
+    - GPIO35
+  vsync_pin: GPIO25
+  href_pin: GPIO23
+  pixel_clock_pin: GPIO22
+  power_down_pin: GPIO32
+
+  # Resolution — PSRAM makes XGA/UXGA possible, but WiFi throughput
+  # is the real bottleneck. SVGA is the practical sweet spot.
+  # 160x120   QQVGA
+  # 320x240   QVGA
+  # 640x480   VGA
+  # 800x600   SVGA  ← recommended default
+  # 1024x768  XGA
+  # 1600x1200 UXGA  ← max, ~1fps over WiFi
+  resolution: ${camera_resolution}
+  jpeg_quality: 15 # 10–63, lower = better quality + larger frames
+  max_framerate: 10fps
+  idle_framerate: 0.2 fps
+
+  ae_level: 1
+  brightness: 1
+  agc_gain_ceiling: 16x
+
+# ─── Flash LED ────────────────────────────────────────────────────────────────
+# GPIO4 drives a high-power white LED (~300mA at full brightness).
+# PWM keeps it controllable. Don't leave at full power — it will heat the board.
+output:
+  - platform: ledc
+    pin: GPIO4
+    id: flash_pwm
+    frequency: 1000Hz
+    channel: 2 # camera uses timer #1, must use channel 2+
+
+light:
+  - platform: monochromatic
+    name: "${friendly_name} Flash"
+    output: flash_pwm
+    id: flash_light
+    restore_mode: ALWAYS_OFF # Never turn on at boot
+    gamma_correct: 0 # Linear — no gamma on a flash LED

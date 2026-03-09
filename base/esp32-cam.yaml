@@ -2,19 +2,23 @@ esphome:
   name: "${name}"
   friendly_name: "${friendly_name}"
   area: "${area}"
-  min_version: 2025.9.0
+  min_version: 2025.12.0
   name_add_mac_suffix: false
   project:
     name: "${project}"
     version: "${version}"
 
 esp32:
-  variant: esp32c3
+  board: esp32cam
   framework:
-    type: esp-idf
-    version: recommended
+    type: arduino
+    advanced: 
+      minimum_chip_revision: "3.1"
 
 packages:
+  - !include ../addon/io/i2c.yaml
+  - !include ../addon/io/camera.yaml
+  - !include ../addon/io/psram.yaml
   - !include ../addon/logger.yaml
   - !include ../addon/network.yaml
   - !include ../addon/ota.yaml
@@ -23,3 +27,4 @@ packages:
   - !include ../addon/factory_reset.yaml
   - !include ../addon/time.yaml
   - !include ../addon/webserver.yaml
+  - !include ../addon/camera_web_server.yaml

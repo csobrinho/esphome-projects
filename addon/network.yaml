@@ -54,7 +54,13 @@ text_sensor:
   # IP Address https://esphome.io/components/text_sensor/wifi_info/
   - platform: wifi_info
     ip_address:
-      name: IP Address
+      name: ${friendly_name} IP Address
+      icon: mdi:ip-network
+    mac_address:
+      name: ${friendly_name} MAC Address
+      icon: mdi:ip-network
+    bssid:
+      name: "${friendly_name} BSSID"
       icon: mdi:ip-network
 
   # ESPHome Version https://esphome.io/components/text_sensor/version/

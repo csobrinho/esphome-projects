@@ -4,7 +4,7 @@ substitutions:
   area: IT Infrastructure
   project: ir.hdmi
   version: "1.0"
-  ir_pin: GPIO10
+  ir_pin: GPIO00
 
 api:
   encryption:
@@ -12,6 +12,8 @@ api:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  # Avoid AUTH_EXPIRED issues. See https://www.reddit.com/r/Esphome/comments/1jhhdud/comment/mkn0usp/
+  output_power: 8.5db
 
 packages:
   base:
@@ -32,11 +34,12 @@ esphome:
 remote_transmitter:
   pin:
     number: ${ir_pin}
-    inverted: True
+    inverted: true
     mode:
-      output: True
-      open_drain: True
+      output: true
+      open_drain: true
   carrier_duty_percent: 100%
+  non_blocking: true
 
 select:
   - platform: template

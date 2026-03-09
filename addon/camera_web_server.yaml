@@ -1,0 +1,6 @@
+# Camera Web Server component https://esphome.io/components/esp32_camera_web_server/
+esp32_camera_web_server:
+  - port: 8080
+    mode: stream   # mjpeg stream  → http://<ip>:8080
+  - port: 8081
+    mode: snapshot # single frame  → http://<ip>:8081
