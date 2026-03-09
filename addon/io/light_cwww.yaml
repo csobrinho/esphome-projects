@@ -10,7 +10,7 @@
 #  frequency: 610Hz
 #
 light:
-  - platform: cwww # https://esphome.io/components/light/cwww/
+  - platform: cwww # https://esphome.io/components/light/cwww/
     name: "${name} Light"
     cold_white: ${dev}_cw
     warm_white: ${dev}_ww
@@ -21,12 +21,12 @@ light:
     gamma_correct: 0
 
 output:
-  - platform: ledc # https://esphome.io/components/output/ledc/
+  - platform: ledc # https://esphome.io/components/output/ledc/
     pin: ${led_cw_pin}
     frequency: ${frequency}
     id: ${dev}_cw
 
-  - platform: ledc # https://esphome.io/components/output/ledc/
+  - platform: ledc # https://esphome.io/components/output/ledc/
     pin: ${led_ww_pin}
     frequency: ${frequency}
     id: ${dev}_ww
