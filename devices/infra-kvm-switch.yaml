@@ -170,7 +170,7 @@ button:
       #   command: 0xFD02
       lambda: |-
         auto call = id(channel).make_call();
-        std::string current = id(channel).state;
+        std::string current = id(channel).current_option();
         int channel = atoi(current.c_str());
         if (channel < 8) {
           channel++;
@@ -187,7 +187,7 @@ button:
       #   command: 0xF50A
       lambda: |-
         auto call = id(channel).make_call();
-        std::string current = id(channel).state;
+        std::string current = id(channel).current_option();
         int channel = atoi(current.c_str());
         if (channel > 1) {
           channel--;
