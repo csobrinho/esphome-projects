@@ -1,0 +1,73 @@
+substitutions:
+  name: lanbo-data-logger
+  friendly_name: Lanbo Data Logger
+  area: Kitchen
+  project: lanbo.fridge
+  version: "1.0"
+
+api:
+  encryption:
+    key: !secret encryption_key
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Avoid AUTH_EXPIRED issues. See https://www.reddit.com/r/Esphome/comments/1jhhdud/comment/mkn0usp/
+  output_power: 8.5db
+
+packages:
+  base:
+    url: https://github.com/csobrinho/esphome-projects/
+    refresh: 1sec
+    ref: main
+    files: [base/esp32-c3-mini.yaml]
+
+external_components:
+  - source: /development/components
+    components: [lanbo_decoder]
+
+debug:
+  update_interval: 30s
+
+uart:
+  id: uart_bus
+  rx_pin: GPIO00
+  baud_rate: 256000
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+  rx_buffer_size: 512
+  debug:
+    direction: RX
+    dummy_receiver: false
+    sequence:
+      - lambda: |-
+          if (id(uart_debug).state) {
+            UARTDebug::log_hex(direction, bytes, ':');
+          }
+
+switch:
+  - platform: template
+    id: uart_debug
+    name: "UART Debug"
+    optimistic: true
+
+output:
+  - platform: gpio
+    id: led_output
+    pin:
+      number: GPIO8
+      ignore_strapping_warning: true # Safe because it is the LED.
+    inverted: true
+
+lanbo_decoder:
+  uart_id: uart_bus
+  response_timeout_us: 800 # Microseconds to wait for response from displays.
+  log_mode: both # One of: 'none', 'raw', 'decoded', 'both'.
+  log_all_messages: false # Log all messages, not just changed ones.
+  bad_checksums:
+    name: "Bad Checksums"
+  sync_errors:
+    name: "Sync Errors"
+  overflows:
+    name: "Overflows"
+  status_led: led_output
