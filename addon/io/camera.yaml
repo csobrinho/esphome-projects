@@ -53,9 +53,9 @@ esp32_camera:
 
   on_image:
     then:
-      - light.turn_on: cam_flash
+      - light.turn_on: flash_light
       - delay: 1s
-      - light.turn_off: cam_flash
+      - light.turn_off: flash_light
 
 # ─── Flash LED ────────────────────────────────────────────────────────────────
 # GPIO4 drives a high-power white LED (~300mA at full brightness).
