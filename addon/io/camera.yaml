@@ -51,6 +51,12 @@ esp32_camera:
   brightness: 1
   agc_gain_ceiling: 16x
 
+  on_image:
+    then:
+      - light.turn_on: cam_flash
+      - delay: 1s
+      - light.turn_off: cam_flash
+
 # ─── Flash LED ────────────────────────────────────────────────────────────────
 # GPIO4 drives a high-power white LED (~300mA at full brightness).
 # PWM keeps it controllable. Don't leave at full power — it will heat the board.
