@@ -45,7 +45,7 @@ esp32_camera:
   resolution: ${camera_resolution}
   jpeg_quality: 15 # 10–63, lower = better quality + larger frames
   max_framerate: 10fps
-  idle_framerate: 0.2 fps
+  idle_framerate: 0 fps
 
   ae_level: 1
   brightness: 1
