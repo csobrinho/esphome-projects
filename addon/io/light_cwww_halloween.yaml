@@ -1,0 +1,223 @@
+# Halloween effects for a light from light_cwww.yaml. https://esphome.io/components/light/#lambda-effect
+#
+# Include after addon/io/light_cwww.yaml with the same dev var:
+#  dev: "pumpkin"
+#
+# Every effect follows the brightness set in Home Assistant, so the slider still works as a dimmer.
+# Also provides script ${dev}_scare: a one-shot jump scare that returns to the previous effect
+# (wire it to a button or a PIR, see devices/halloween-pumpkin.yaml).
+substitutions:
+  # Prelude shared by every effect below. emit(level, cold):
+  #   level: perceived brightness 0..1, scaled by the brightness set in Home Assistant.
+  #   cold:  0 = all warm white, 1 = all cold white, constant total output in between.
+  halloween_emit: |-
+    auto emit = [&it](float level, float cold) {
+      level = std::clamp(level, 0.0f, 1.0f);
+      cold = std::clamp(cold, 0.0f, 1.0f);
+      // light_cwww.yaml sets gamma_correct: 0, so apply a perceptual curve here instead.
+      if (it.get_gamma_correct() == 0.0f) level = powf(level, 2.2f);
+      // constant_brightness scales by max(cw, ww); normalize so a blend keeps total output flat.
+      const float m = std::max(cold, 1.0f - cold);
+      auto call = it.turn_on();
+      call.set_brightness(level * it.remote_values.get_brightness());
+      call.set_cold_white(cold / m);
+      call.set_warm_white((1.0f - cold) / m);
+      call.set_transition_length(0);
+      call.set_publish(false);
+      call.set_save(false);
+      call.perform();
+    };
+
+light:
+  - id: !extend ${dev}_light
+    effects:
+      # Realistic flame: restless flicker, a draft every ~15 s, whiter when tall, amber when low.
+      - lambda:
+          name: Candle
+          update_interval: 25ms
+          lambda: |-
+            ${halloween_emit}
+            static float level, target;
+            static uint32_t gust_until;
+            const uint32_t now = millis();
+            if (initial_run) { level = target = 0.85f; gust_until = now; }
+            const bool gust = (int32_t) (gust_until - now) > 0;
+            if (!gust && random_float() < 0.0017f) gust_until = now + 300 + random_uint32() % 900;
+            if (gust) target = 0.25f + 0.40f * random_float();
+            else if (random_float() < 0.12f) target = 0.72f + 0.28f * random_float();
+            level += (target - level) * (gust ? 0.45f : 0.18f);
+            emit(level, std::max(0.0f, level - 0.85f) * 0.5f);
+
+      # Burns for 25-70 s, sputters, goes out to a fading ember, then relights with a match flare.
+      - lambda:
+          name: Dying Candle
+          update_interval: 25ms
+          lambda: |-
+            ${halloween_emit}
+            enum Phase { BURN, SPUTTER, OUT, RELIGHT };
+            static Phase phase;
+            static uint32_t start, len;
+            static float level, target;
+            const uint32_t now = millis();
+            if (initial_run) { phase = BURN; start = now; len = 15000; level = target = 0.85f; }
+            uint32_t t = now - start;
+            if (t >= len) {
+              switch (phase) {
+                case BURN: phase = SPUTTER; len = 2000 + random_uint32() % 2000; break;
+                case SPUTTER: phase = OUT; len = 2000 + random_uint32() % 3000; break;
+                case OUT: phase = RELIGHT; len = 1200; break;
+                case RELIGHT: phase = BURN; len = 25000 + random_uint32() % 45000; level = target = 0.85f; break;
+              }
+              start = now;
+              t = 0;
+            }
+            const float p = (float) t / len;
+            switch (phase) {
+              case BURN:
+                if (random_float() < 0.12f) target = 0.72f + 0.28f * random_float();
+                level += (target - level) * 0.18f;
+                emit(level, std::max(0.0f, level - 0.85f) * 0.5f);
+                break;
+              case SPUTTER:  // Weakening, with the flame nearly dropping out.
+                target = random_float() < 0.3f ? 0.05f : (0.65f - 0.45f * p) * (0.5f + 0.5f * random_float());
+                level += (target - level) * 0.5f;
+                emit(level, 0.0f);
+                break;
+              case OUT:  // Glowing wick fading to dark.
+                emit(0.15f * (1.0f - p), 0.0f);
+                break;
+              case RELIGHT:  // Quick white flare from the match, settling into a warm flame.
+                if (t < 150) emit(t / 150.0f, 0.3f);
+                else emit(1.0f - 0.15f * (t - 150) / 1050.0f, 0.3f - 0.25f * (t - 150) / 1050.0f);
+                break;
+            }
+
+      # A calm candle until something takes over: snuffed out, cold white thrashing, then it rekindles.
+      - lambda:
+          name: Possessed
+          update_interval: 25ms
+          lambda: |-
+            ${halloween_emit}
+            enum Phase { CANDLE, SNUFFED, FIT };
+            static Phase phase;
+            static uint32_t start, fit_len, next_fit;
+            static float level, target;
+            static bool lit;
+            const uint32_t now = millis();
+            if (initial_run) { phase = CANDLE; start = now; next_fit = now + 8000; level = target = 0.85f; }
+            const uint32_t t = now - start;
+            if (phase == CANDLE && (int32_t) (now - next_fit) >= 0) {
+              phase = SNUFFED; start = now;
+            } else if (phase == SNUFFED && t >= 600) {
+              phase = FIT; start = now; fit_len = 1200 + random_uint32() % 1500;
+            } else if (phase == FIT && t >= fit_len) {
+              phase = CANDLE; start = now; level = target = 0.1f;
+              next_fit = now + 20000 + random_uint32() % 40000;
+            }
+            if (phase == SNUFFED) { level *= 0.75f; emit(level, 0.0f); return; }
+            if (phase == FIT) {
+              if (random_float() < 0.35f) lit = !lit;
+              emit(lit ? 1.0f : 0.0f, 1.0f);
+              return;
+            }
+            if (random_float() < 0.12f) target = 0.72f + 0.28f * random_float();
+            level += (target - level) * (t < 2000 ? 0.04f : 0.18f);  // Slow to catch after a fit.
+            emit(level, std::max(0.0f, level - 0.85f) * 0.5f);
+
+      # Dim amber lantern; every 5-20 s a strike of 2-4 cold flashes with a fading afterglow.
+      - lambda:
+          name: Lightning
+          update_interval: 20ms
+          lambda: |-
+            ${halloween_emit}
+            static uint32_t next_strike, step_end, glow_start;
+            static int flashes;
+            static bool lit, glowing;
+            static float peak;
+            const uint32_t now = millis();
+            if (initial_run) { next_strike = now + 3000; flashes = 0; lit = glowing = false; }
+            if (flashes == 0 && !lit && (int32_t) (now - next_strike) >= 0) {
+              flashes = 2 + random_uint32() % 3;
+              step_end = now;
+            }
+            if ((flashes > 0 || lit) && (int32_t) (now - step_end) >= 0) {
+              if (lit) {
+                lit = false;
+                step_end = now + 40 + random_uint32() % 120;
+                if (flashes == 0) {
+                  glowing = true;
+                  glow_start = now;
+                  next_strike = now + 5000 + random_uint32() % 15000;
+                }
+              } else {
+                lit = true;
+                flashes--;
+                peak = 0.6f + 0.4f * random_float();
+                step_end = now + 30 + random_uint32() % 90;
+              }
+            }
+            if (lit) { emit(peak, 1.0f); return; }
+            if (flashes > 0) { emit(0.03f, 1.0f); return; }  // Dark gaps inside a strike.
+            const float sway = 0.04f * sinf((now % 4800) * (2.0f * (float) M_PI / 4800.0f));
+            float after = 0.0f;
+            if (glowing) {
+              after = std::max(0.0f, 1.0f - (now - glow_start) / 600.0f);
+              glowing = after > 0.0f;
+            }
+            emit(0.22f + sway + 0.35f * after * after, 0.8f * after);
+
+      # Slow warm lub-dub at 60 bpm over a faint ember.
+      - lambda:
+          name: Heartbeat
+          update_interval: 20ms
+          lambda: |-
+            ${halloween_emit}
+            const float t = millis() % 1000;
+            auto beat = [t](float center, float width) { const float d = (t - center) / width; return expf(-d * d); };
+            emit(0.08f + 0.92f * std::max(beat(120.0f, 50.0f), 0.6f * beat(360.0f, 65.0f)), 0.0f);
+
+      # 7 s breath: a warm ember swells into a pale cold exhale and sinks back.
+      - lambda:
+          name: Ghost Breath
+          update_interval: 30ms
+          lambda: |-
+            ${halloween_emit}
+            const float s = 0.5f - 0.5f * cosf((millis() % 7000) * (2.0f * (float) M_PI / 7000.0f));
+            emit(0.25f + 0.70f * s, 0.9f * s * s);
+
+      # Jump scare (3.2 s, loops if picked by hand): blackout, cold blast, slow warm return.
+      - lambda:
+          name: Scare
+          update_interval: 20ms
+          lambda: |-
+            ${halloween_emit}
+            static uint32_t start;
+            if (initial_run) start = millis();
+            const uint32_t t = (millis() - start) % 3200;
+            if (t < 600) emit(0.0f, 0.0f);
+            else if (t < 1600) emit(0.85f + 0.15f * random_float(), 1.0f);
+            else emit((t - 1600) / 1600.0f * (0.85f + 0.15f * random_float()), 0.0f);
+
+globals:
+  - id: ${dev}_effect_before_scare
+    type: std::string
+
+script:
+  # Runs Scare once, then returns to whatever effect was running. Ignored while the light is off.
+  - id: ${dev}_scare
+    mode: single
+    then:
+      - if:
+          condition:
+            light.is_on: ${dev}_light
+          then:
+            - lambda: |-
+                const auto name = id(${dev}_light).get_effect_name();
+                id(${dev}_effect_before_scare) = std::string(name.c_str(), name.size());
+            - light.turn_on:
+                id: ${dev}_light
+                effect: Scare
+            - delay: 3200ms
+            - light.turn_on:
+                id: ${dev}_light
+                effect: !lambda return id(${dev}_effect_before_scare);
