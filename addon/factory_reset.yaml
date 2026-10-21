@@ -2,4 +2,4 @@
 button:
   - platform: factory_reset
     id: factory_reset_button
-    name: "${friendly_name} Factory Reset"
+    name: "Factory Reset"
