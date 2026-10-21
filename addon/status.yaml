@@ -9,4 +9,4 @@ status_led:
 
 binary_sensor:
   - platform: status
-    name: "${friendly_name} Status"
+    name: "Status"
