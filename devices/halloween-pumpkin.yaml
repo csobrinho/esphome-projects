@@ -1,0 +1,88 @@
+# Carved pumpkin with a short CW/WW strip on an ESP32-C3 SuperMini.
+#
+# Wiring: CW on GPIO3, WW on GPIO4 (swap led_cw_pin/led_ww_pin if the blend looks inverted), each
+# through a logic-level MOSFET. Both pins float until the firmware starts, so a 10-100k pull-down
+# on each gate keeps the strip dark during boot.
+#
+# Onboard BOOT button (GPIO9): click = next effect, double-click = jump scare, hold 1 s = on/off.
+substitutions:
+  name: halloween-pumpkin
+  friendly_name: Halloween Pumpkin
+  area: Kitchen
+  project: lights.pumpkin
+  version: "1.0"
+  # The C3's LEDC tops out at 14 bits, and anything up to ~4.88 kHz still gets all 14 (610 Hz buys
+  # nothing extra here). Higher also keeps phone videos of the pumpkin free of rolling bands.
+  # Drop to ~1 kHz if the MOSFET board is opto-isolated (PC817 and friends are slow).
+  frequency: 4800Hz
+
+api:
+  encryption:
+    key: !secret encryption_key
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+packages:
+  base:
+    url: https://github.com/csobrinho/esphome-projects/
+    refresh: 1sec
+    ref: main
+    files:
+      - path: base/esp32-c3-mini.yaml
+      - path: addon/io/light_cwww.yaml
+        vars: { name: "Pumpkin", dev: "pumpkin", led_cw_pin: GPIO4, led_ww_pin: GPIO3 }
+      - path: addon/io/light_cwww_halloween.yaml
+        vars: { name: "Pumpkin", dev: "pumpkin" }
+
+esphome:
+  on_boot:
+    priority: 200 # After the light is set up, without waiting for Wi-Fi.
+    then:
+      - light.turn_on:
+          id: pumpkin_light
+          effect: Candle
+
+light:
+  - id: !extend pumpkin_light
+    on_turn_on:
+      # A plain "on" from Home Assistant comes back as a candle instead of a static light.
+      - if:
+          condition:
+            lambda: return id(pumpkin_light).get_effect_name() == "None";
+          then:
+            - light.turn_on:
+                id: pumpkin_light
+                effect: Candle
+
+binary_sensor:
+  - platform: gpio # https://esphome.io/components/binary_sensor/gpio/
+    id: boot_button
+    internal: true
+    pin:
+      number: GPIO9
+      inverted: true
+      mode: { input: true, pullup: true }
+      ignore_strapping_warning: true # Read only after boot; holding it at power-up enters download mode.
+    on_multi_click:
+      - timing: [ON for at most 600ms, OFF for at least 400ms]
+        then:
+          - light.effect.next: pumpkin_light
+      - timing: [ON for at most 600ms, OFF for at most 400ms, ON for at most 600ms, OFF for at least 50ms]
+        then:
+          - script.execute: pumpkin_scare
+      - timing: [ON for at least 1s]
+        then:
+          - light.toggle: pumpkin_light
+
+  - platform: gpio
+    id: pumpkin_motion
+    name: Motion
+    device_class: motion
+    pin:
+      number: GPIO5
+      mode: { input: true }
+    filters:
+      - delayed_off: 20s # One scare per visit
+    on_press:
+      - script.execute: pumpkin_scare
