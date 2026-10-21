@@ -8,6 +8,9 @@
 # Also provides:
 #  - select "${name} Effect" (id ${dev}_effect): pick an effect from Home Assistant; stays in sync
 #    when the effect changes from anywhere else.
+#  - "Random" in that select: plays a random effect (never Scare, never the same twice in a row)
+#    for "${name} Random Interval" minutes, then another, until the effect is changed any other way
+#    or the light is turned off. A scare doesn't end it.
 #  - script ${dev}_scare: a one-shot jump scare that returns to the previous effect. Picking "Scare"
 #    in the select runs this script.
 substitutions:
@@ -39,7 +42,17 @@ light:
       # state, so this only runs on real changes. publish_state() skips the select's set_action.
       - lambda: |-
           const auto effect = id(${dev}_light).get_effect_name();
-          const auto index = id(${dev}_effect).index_of(effect.c_str(), effect.size());
+          StringRef shown = effect;
+          if (id(${dev}_random_on)) {
+            if (effect == id(${dev}_random_pick)) {
+              shown = StringRef::from_lit("Random");  // The cycle's own pick (or a scare handing back).
+            } else if (!id(${dev}_scare).is_running()) {
+              // Changed from elsewhere, or turned off: leave Random mode.
+              id(${dev}_random_on) = false;
+              id(${dev}_random_cycle).stop();
+            }
+          }
+          const auto index = id(${dev}_effect).index_of(shown.c_str(), shown.size());
           const auto active = id(${dev}_effect).active_index();
           if (index.has_value() && (!active.has_value() || *active != *index))
             id(${dev}_effect).publish_state(*index);
@@ -216,21 +229,50 @@ select:
     id: ${dev}_effect
     name: "${name} Effect"
     icon: mdi:halloween
-    # Same names as the effects above, plus None for a plain light.
-    options: [None, Candle, Dying Candle, Possessed, Lightning, Heartbeat, Ghost Breath, Scare]
+    # Same names as the effects above, plus None for a plain light and Random for the cycle.
+    options: [None, Random, Candle, Dying Candle, Possessed, Lightning, Heartbeat, Ghost Breath, Scare]
     set_action:
       - if:
           condition:
             lambda: return x == "Scare";
           then:
-            - script.execute: ${dev}_scare
+            - script.execute: ${dev}_scare # Plays once; a running Random cycle carries on after.
           else:
-            - light.turn_on:
-                id: ${dev}_light
-                effect: !lambda return std::string(x.c_str(), x.size());
+            - if:
+                condition:
+                  lambda: return x == "Random";
+                then:
+                  - lambda: id(${dev}_random_on) = true;
+                  - script.execute: ${dev}_random_cycle
+                else:
+                  - lambda: id(${dev}_random_on) = false;
+                  - script.stop: ${dev}_random_cycle
+                  - light.turn_on:
+                      id: ${dev}_light
+                      effect: !lambda return std::string(x.c_str(), x.size());
+
+number:
+  - platform: template # https://esphome.io/components/number/template/
+    id: ${dev}_random_minutes
+    name: "${name} Random Interval"
+    icon: mdi:timer-sand
+    entity_category: config
+    unit_of_measurement: min
+    min_value: 1
+    max_value: 60
+    step: 1
+    mode: box
+    initial_value: 5
+    optimistic: true
+    restore_value: true
 
 globals:
   - id: ${dev}_effect_before_scare
+    type: std::string
+  - id: ${dev}_random_on
+    type: bool
+    initial_value: "false"
+  - id: ${dev}_random_pick
     type: std::string
 
 script:
@@ -252,3 +294,28 @@ script:
             - light.turn_on:
                 id: ${dev}_light
                 effect: !lambda return id(${dev}_effect_before_scare);
+
+  # Random mode: a new random effect every ${dev}_random_minutes until Random mode ends.
+  - id: ${dev}_random_cycle
+    mode: restart
+    then:
+      - while:
+          condition:
+            lambda: return id(${dev}_random_on);
+          then:
+            - lambda: |-
+                // Any effect on the light except Scare and the one running now.
+                const auto current = id(${dev}_light).get_effect_name();
+                std::vector<StringRef> pool;
+                for (auto *effect : id(${dev}_light).get_effects()) {
+                  const auto name = effect->get_name();
+                  if (name != "Scare" && name != current) pool.push_back(name);
+                }
+                if (!pool.empty()) {
+                  const auto pick = pool[random_uint32() % pool.size()];
+                  id(${dev}_random_pick) = std::string(pick.c_str(), pick.size());
+                }
+            - light.turn_on:
+                id: ${dev}_light
+                effect: !lambda return id(${dev}_random_pick);
+            - delay: !lambda return (uint32_t) (id(${dev}_random_minutes).state * 60000.0f);
