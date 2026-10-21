@@ -1,11 +1,15 @@
 # Halloween effects for a light from light_cwww.yaml. https://esphome.io/components/light/#lambda-effect
 #
-# Include after addon/io/light_cwww.yaml with the same dev var:
+# Include after addon/io/light_cwww.yaml with the same name and dev vars:
+#  name: "Pumpkin"
 #  dev: "pumpkin"
 #
 # Every effect follows the brightness set in Home Assistant, so the slider still works as a dimmer.
-# Also provides script ${dev}_scare: a one-shot jump scare that returns to the previous effect
-# (wire it to a button or a PIR, see devices/halloween-pumpkin.yaml).
+# Also provides:
+#  - select "${name} Effect" (id ${dev}_effect): pick an effect from Home Assistant; stays in sync
+#    when the effect changes from anywhere else.
+#  - script ${dev}_scare: a one-shot jump scare that returns to the previous effect (wire it to a
+#    button or a PIR). Picking "Scare" in the select runs this script.
 substitutions:
   # Prelude shared by every effect below. emit(level, cold):
   #   level: perceived brightness 0..1, scaled by the brightness set in Home Assistant.
@@ -30,6 +34,15 @@ substitutions:
 
 light:
   - id: !extend ${dev}_light
+    on_state:
+      # Mirror the running effect into the select (HA, BOOT button, scare). Effect frames don't publish
+      # state, so this only runs on real changes. publish_state() skips the select's set_action.
+      - lambda: |-
+          const auto effect = id(${dev}_light).get_effect_name();
+          const auto index = id(${dev}_effect).index_of(effect.c_str(), effect.size());
+          const auto active = id(${dev}_effect).active_index();
+          if (index.has_value() && (!active.has_value() || *active != *index))
+            id(${dev}_effect).publish_state(*index);
     effects:
       # Realistic flame: restless flicker, a draft every ~15 s, whiter when tall, amber when low.
       - lambda:
@@ -197,6 +210,24 @@ light:
             if (t < 600) emit(0.0f, 0.0f);
             else if (t < 1600) emit(0.85f + 0.15f * random_float(), 1.0f);
             else emit((t - 1600) / 1600.0f * (0.85f + 0.15f * random_float()), 0.0f);
+
+select:
+  - platform: template # https://esphome.io/components/select/template/
+    id: ${dev}_effect
+    name: "${name} Effect"
+    icon: mdi:halloween
+    # Same names as the effects above, plus None for a plain light.
+    options: [None, Candle, Dying Candle, Possessed, Lightning, Heartbeat, Ghost Breath, Scare]
+    set_action:
+      - if:
+          condition:
+            lambda: return x == "Scare";
+          then:
+            - script.execute: ${dev}_scare
+          else:
+            - light.turn_on:
+                id: ${dev}_light
+                effect: !lambda return std::string(x.c_str(), x.size());
 
 globals:
   - id: ${dev}_effect_before_scare
