@@ -8,8 +8,8 @@
 # Also provides:
 #  - select "${name} Effect" (id ${dev}_effect): pick an effect from Home Assistant; stays in sync
 #    when the effect changes from anywhere else.
-#  - script ${dev}_scare: a one-shot jump scare that returns to the previous effect (wire it to a
-#    button or a PIR). Picking "Scare" in the select runs this script.
+#  - script ${dev}_scare: a one-shot jump scare that returns to the previous effect. Picking "Scare"
+#    in the select runs this script.
 substitutions:
   # Prelude shared by every effect below. emit(level, cold):
   #   level: perceived brightness 0..1, scaled by the brightness set in Home Assistant.
@@ -18,7 +18,7 @@ substitutions:
     auto emit = [&it](float level, float cold) {
       level = std::clamp(level, 0.0f, 1.0f);
       cold = std::clamp(cold, 0.0f, 1.0f);
-      // light_cwww.yaml sets gamma_correct: 0, so apply a perceptual curve here instead.
+      // Apply a perceptual curve when the light has no gamma correction of its own.
       if (it.get_gamma_correct() == 0.0f) level = powf(level, 2.2f);
       // constant_brightness scales by max(cw, ww); normalize so a blend keeps total output flat.
       const float m = std::max(cold, 1.0f - cold);
@@ -35,7 +35,7 @@ substitutions:
 light:
   - id: !extend ${dev}_light
     on_state:
-      # Mirror the running effect into the select (HA, BOOT button, scare). Effect frames don't publish
+      # Mirror the running effect into the select, whatever changed it. Effect frames don't publish
       # state, so this only runs on real changes. publish_state() skips the select's set_action.
       - lambda: |-
           const auto effect = id(${dev}_light).get_effect_name();
