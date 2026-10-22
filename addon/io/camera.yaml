@@ -51,11 +51,20 @@ esp32_camera:
   brightness: 1
   agc_gain_ceiling: 16x
 
+  # Flash on while a stream is producing frames, off 3 s after the last one. Single snapshots don't
+  # turn it on.
+  on_stream_start:
+    - globals.set:
+        id: flash_streaming
+        value: "true"
+    - light.turn_on: flash_light
+    - script.execute: flash_stream_timeout
   on_image:
-    then:
-      - light.turn_on: flash_light
-      - delay: 1s
-      - light.turn_off: flash_light
+    - if:
+        condition:
+          lambda: return id(flash_streaming);
+        then:
+          - script.execute: flash_stream_timeout
 
 # ─── Flash LED ────────────────────────────────────────────────────────────────
 # GPIO4 drives a high-power white LED (~300mA at full brightness).
@@ -74,3 +83,19 @@ light:
     id: flash_light
     restore_mode: ALWAYS_OFF # Never turn on at boot
     gamma_correct: 0 # Linear — no gamma on a flash LED
+
+globals:
+  - id: flash_streaming
+    type: bool
+    initial_value: "false"
+
+script:
+  # Restarted by every streamed frame; turns the flash off once frames stop.
+  - id: flash_stream_timeout
+    mode: restart
+    then:
+      - delay: 3s
+      - globals.set:
+          id: flash_streaming
+          value: "false"
+      - light.turn_off: flash_light
