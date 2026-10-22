@@ -1,0 +1,32 @@
+# Halloween sound clips and a script that plays a random one. https://esphome.io/components/audio_file/
+#
+# Plays on the media player from addon/io/speaker_max98357a.yaml. Include after it, with the same
+# dev var:
+#  dev: "pumpkin"
+#
+# and optionally, globally, to use your own clips (16 kHz, mono, 16-bit WAV, same file names):
+#  halloween_sounds: sounds # A folder next to the device config, or any http(s) URL.
+#
+# Provides script ${dev}_play_halloween_sound: plays one clip at random, never the same one twice
+# in a row. Clips download from sounds/halloween/ in this repo at compile time.
+substitutions:
+  halloween_sounds: https://raw.githubusercontent.com/csobrinho/esphome-projects/main/sounds/halloween
+
+audio_file:
+  - id: ${dev}_sound_ghost_wail
+    file: ${halloween_sounds}/ghost_wail.wav
+  - id: ${dev}_sound_thunder
+    file: ${halloween_sounds}/thunder.wav
+  - id: ${dev}_sound_growl
+    file: ${halloween_sounds}/growl.wav
+
+script:
+  - id: ${dev}_play_halloween_sound
+    then:
+      - lambda: |-
+          const audio::AudioFile *sounds[] = {id(${dev}_sound_ghost_wail), id(${dev}_sound_thunder), id(${dev}_sound_growl)};
+          static size_t last = SIZE_MAX;
+          size_t pick = random_uint32() % std::size(sounds);
+          if (pick == last) pick = (pick + 1) % std::size(sounds);
+          last = pick;
+          id(${dev}_audio).play_file(sounds[pick], true, false);
