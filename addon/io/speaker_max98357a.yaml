@@ -1,0 +1,40 @@
+# MAX98357A I2S amplifier with a speaker media player. https://esphome.io/components/media_player/speaker/
+#
+# Add this to the esphome config under substitutions to set the speaker config:
+#  name: "Pumpkin"
+#  dev: "pumpkin"
+#  i2s_bclk_pin: GPIO6
+#  i2s_lrclk_pin: GPIO7
+#  i2s_dout_pin: GPIO10
+#
+# Amp wiring: VIN -> 5V, GND -> GND, BCLK/LRC/DIN -> the pins above, GAIN and SD unconnected
+# (9 dB gain, both channels mixed). The speaker goes across the amp's + and - terminals only.
+#
+# Sized for chips without PSRAM (ESP32-C3): one announcement pipeline, 16 kHz mono WAV and a small
+# buffer. Home Assistant transcodes TTS and media to that format. On-device files (audio_file:) must
+# be 16 kHz, mono, 16-bit WAV. Play them with announcement: true, the only pipeline here.
+i2s_audio:
+  - id: ${dev}_i2s # https://esphome.io/components/i2s_audio/
+    i2s_bclk_pin: ${i2s_bclk_pin}
+    i2s_lrclk_pin: ${i2s_lrclk_pin}
+
+speaker:
+  - platform: i2s_audio # https://esphome.io/components/speaker/i2s_audio/
+    id: ${dev}_speaker
+    i2s_audio_id: ${dev}_i2s
+    dac_type: external
+    i2s_dout_pin: ${i2s_dout_pin}
+    channel: mono
+    sample_rate: 16000
+    bits_per_sample: 16bit
+
+media_player:
+  - platform: speaker
+    id: ${dev}_audio
+    name: "${name} Speaker"
+    buffer_size: 32000 # ~1 s of 16 kHz mono; the 1 MB default assumes PSRAM.
+    announcement_pipeline:
+      speaker: ${dev}_speaker
+      format: WAV
+      sample_rate: 16000
+      num_channels: 1
