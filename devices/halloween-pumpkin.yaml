@@ -67,6 +67,10 @@ media_player:
   - id: !extend pumpkin_audio
     name: Speaker
 
+number:
+  - id: !extend pumpkin_random_minutes
+    name: Random Interval
+
 select:
   - id: !extend pumpkin_effect
     name: Effect
