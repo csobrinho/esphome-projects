@@ -1,0 +1,23 @@
+# Daily time window https://esphome.io/components/binary_sensor/template/
+#
+# A binary sensor that is on between two times of day, in Home Assistant's time zone (uses
+# homeassistant_time from addon/time.yaml). Add this to the esphome config under vars:
+#  id: "quiet_hours" # Id of the binary sensor.
+#  window_start: "20:30" # "HH:MM", quoted (unquoted YAML reads 20:30 as a number).
+#  window_end: "07:30" # The window may span midnight.
+#
+# It has no state until the clock syncs, and fires on_press/on_release for its first state too, so
+# actions attached with !extend also apply after a reboot.
+binary_sensor:
+  - platform: template
+    id: ${id}
+    internal: true
+    lambda: |-
+      auto minutes_of = [](const char *hhmm) { int h = 0, m = 0; sscanf(hhmm, "%d:%d", &h, &m); return h * 60 + m; };
+      static const int start = minutes_of("${window_start}");
+      static const int end = minutes_of("${window_end}");
+      const auto now = id(homeassistant_time).now();
+      if (!now.is_valid()) return {};
+      const int minutes = now.hour * 60 + now.minute;
+      return start <= end ? minutes >= start && minutes < end : minutes >= start || minutes < end;
+    trigger_on_initial_state: true
