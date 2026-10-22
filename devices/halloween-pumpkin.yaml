@@ -14,8 +14,8 @@ substitutions:
   area: Kitchen
   project: lights.pumpkin
   version: "1.0"
-  # The C3's LEDC tops out at 14 bits, and anything up to ~4.88 kHz still gets all 14 (610 Hz buys
-  # nothing extra here). Higher also keeps phone videos of the pumpkin free of rolling bands.
+  # The C3's LEDC tops out at 14 bits and keeps all 14 up to ~4.88 kHz. Higher also keeps phone
+  # videos of the pumpkin free of rolling bands.
   # Drop to ~1 kHz if the MOSFET board is opto-isolated (PC817 and friends are slow).
   frequency: 4800Hz
 
@@ -52,6 +52,7 @@ esphome:
 
 light:
   - id: !extend pumpkin_light
+    name: None # Named after the device: light.halloween_pumpkin.
     on_turn_on:
       # A plain "on" from Home Assistant comes back as a candle instead of a static light.
       - if:
@@ -62,10 +63,15 @@ light:
                 id: pumpkin_light
                 effect: Candle
 
+media_player:
+  - id: !extend pumpkin_audio
+    name: Speaker
+
 select:
   - id: !extend pumpkin_effect
+    name: Effect
     on_value:
-      # Every scare (PIR, button, select, HA effect list) switches the effect select to "Scare" once.
+      # Play a random sound as each scare starts.
       - if:
           condition:
             lambda: return x == "Scare";

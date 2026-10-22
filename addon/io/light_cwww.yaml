@@ -11,7 +11,7 @@
 #
 light:
   - platform: cwww # https://esphome.io/components/light/cwww/
-    id: ${dev}_light # Let devices `!extend` this light (effects, automations).
+    id: ${dev}_light
     name: "${name} Light"
     cold_white: ${dev}_cw
     warm_white: ${dev}_ww
