@@ -21,7 +21,9 @@ packages:
     url: https://github.com/csobrinho/esphome-projects/
     refresh: 1sec
     ref: main
-    files: [base/esp32-c3-mini.yaml]
+    files:
+      - path: base/esp32-c3-mini.yaml
+      - path: addon/status.yaml
 
 output:
   - platform: gpio
