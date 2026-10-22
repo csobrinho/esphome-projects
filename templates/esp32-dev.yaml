@@ -3,7 +3,7 @@ substitutions:
   friendly_name: Lights
   area: Kitchen
   project: lights.cwww
-  version: 1.0
+  version: "1.0"
 
 api:
   encryption:

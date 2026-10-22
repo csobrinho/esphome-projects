@@ -5,6 +5,7 @@ substitutions:
   project: io.chime
   version: "1.0"
   status_led_pin: GPIO08
+  default_chime_delay: "100" # ms, used until a Chime Delay value has been saved.
 
 api:
   encryption:
