@@ -24,9 +24,10 @@ script:
   - id: ${dev}_play_halloween_sound
     then:
       - lambda: |-
-          const audio::AudioFile *sounds[] = {id(${dev}_sound_ghost_wail), id(${dev}_sound_thunder), id(${dev}_sound_growl)};
+          // Element type deduced from the ids, so it matches play_file() whether it takes a const pointer or not.
+          const std::array sounds{id(${dev}_sound_ghost_wail), id(${dev}_sound_thunder), id(${dev}_sound_growl)};
           static size_t last = SIZE_MAX;
-          size_t pick = random_uint32() % std::size(sounds);
-          if (pick == last) pick = (pick + 1) % std::size(sounds);
+          size_t pick = random_uint32() % sounds.size();
+          if (pick == last) pick = (pick + 1) % sounds.size();
           last = pick;
           id(${dev}_audio).play_file(sounds[pick], true, false);
