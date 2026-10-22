@@ -1,10 +1,13 @@
-# Carved pumpkin with a short CW/WW strip on an ESP32-C3 SuperMini.
+# Carved pumpkin with a short CW/WW strip, a PIR and a speaker on an ESP32-C3 SuperMini.
 #
-# Wiring: CW on GPIO3, WW on GPIO4 (swap led_cw_pin/led_ww_pin if the blend looks inverted), each
-# through a logic-level MOSFET. Both pins float until the firmware starts, so a 10-100k pull-down
-# on each gate keeps the strip dark during boot.
+# Wiring:
+#  - CW strip on GPIO4, WW on GPIO3, each through a logic-level MOSFET. Both pins float until the
+#    firmware starts, so a 10-100k pull-down on each gate keeps the strip dark during boot.
+#  - AM312 mini PIR: VIN -> 3V3, GND -> GND, OUT -> GPIO5.
+#  - MAX98357A amp: VIN -> 5V, GND -> GND, BCLK -> GPIO6, LRC -> GPIO7, DIN -> GPIO10.
 #
 # Onboard BOOT button (GPIO9): click = next effect, double-click = jump scare, hold 1 s = on/off.
+# Every scare plays a random Halloween sound; set halloween_sounds: sounds to use your own clips.
 substitutions:
   name: halloween-pumpkin
   friendly_name: Halloween Pumpkin
@@ -34,6 +37,10 @@ packages:
         vars: { name: "Pumpkin", dev: "pumpkin", led_cw_pin: GPIO4, led_ww_pin: GPIO3 }
       - path: addon/io/light_cwww_halloween.yaml
         vars: { name: "Pumpkin", dev: "pumpkin" }
+      - path: addon/io/speaker_max98357a.yaml
+        vars: { name: "Pumpkin", dev: "pumpkin", i2s_bclk_pin: GPIO6, i2s_lrclk_pin: GPIO7, i2s_dout_pin: GPIO10 }
+      - path: addon/sounds/halloween.yaml
+        vars: { dev: "pumpkin" }
 
 esphome:
   on_boot:
@@ -54,6 +61,17 @@ light:
             - light.turn_on:
                 id: pumpkin_light
                 effect: Candle
+
+select:
+  - id: !extend pumpkin_effect
+    on_value:
+      # Every scare (PIR, button, select, HA effect list) switches the effect select to "Scare" once.
+      - if:
+          condition:
+            lambda: return x == "Scare";
+          then:
+            - delay: 550ms # Land on the cold blast after the effect's 600 ms of darkness.
+            - script.execute: pumpkin_play_halloween_sound
 
 binary_sensor:
   - platform: gpio # https://esphome.io/components/binary_sensor/gpio/
