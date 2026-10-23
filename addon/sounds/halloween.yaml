@@ -18,19 +18,26 @@ substitutions:
   halloween_sounds: https://raw.githubusercontent.com/csobrinho/esphome-projects/main/sounds/halloween
 
 audio_file:
-  - id: ${dev}_sound_ghost_wail
-    file: ${halloween_sounds}/ghost_wail.wav
+  - id: ${dev}_sound_evil_laugh
+    file: ${halloween_sounds}/evil_laugh.wav
+  - id: ${dev}_sound_maniac_laugh
+    file: ${halloween_sounds}/maniac_laugh.wav
+  - id: ${dev}_sound_witch_cackle
+    file: ${halloween_sounds}/witch_cackle.wav
+  - id: ${dev}_sound_ghost_moan
+    file: ${halloween_sounds}/ghost_moan.wav
+  - id: ${dev}_sound_ghost_shriek
+    file: ${halloween_sounds}/ghost_shriek.wav
   - id: ${dev}_sound_thunder
     file: ${halloween_sounds}/thunder.wav
-  - id: ${dev}_sound_growl
-    file: ${halloween_sounds}/growl.wav
 
 script:
   - id: ${dev}_play_halloween_sound
     then:
       - lambda: |-
           // Element type deduced from the ids, so it matches play_file() whether it takes a const pointer or not.
-          const std::array sounds{id(${dev}_sound_ghost_wail), id(${dev}_sound_thunder), id(${dev}_sound_growl)};
+          const std::array sounds{id(${dev}_sound_evil_laugh), id(${dev}_sound_maniac_laugh), id(${dev}_sound_witch_cackle),
+                                  id(${dev}_sound_ghost_moan), id(${dev}_sound_ghost_shriek), id(${dev}_sound_thunder)};
           static size_t last = SIZE_MAX;
           size_t pick = random_uint32() % sounds.size();
           if (pick == last) pick = (pick + 1) % sounds.size();
@@ -42,7 +49,7 @@ select:
     id: ${dev}_sound
     name: Sound
     icon: mdi:music-box
-    options: [Random, Ghost Wail, Thunder, Growl] # Clips in the same order as the audio files.
+    options: [Random, Evil Laugh, Maniac Laugh, Witch Cackle, Ghost Moan, Ghost Shriek, Thunder] # Clips in the same order as the audio files.
     initial_option: Random
     optimistic: true
     restore_value: true
@@ -54,7 +61,8 @@ button:
     icon: mdi:play
     on_press:
       - lambda: |-
-          const std::array sounds{id(${dev}_sound_ghost_wail), id(${dev}_sound_thunder), id(${dev}_sound_growl)};
+          const std::array sounds{id(${dev}_sound_evil_laugh), id(${dev}_sound_maniac_laugh), id(${dev}_sound_witch_cackle),
+                                  id(${dev}_sound_ghost_moan), id(${dev}_sound_ghost_shriek), id(${dev}_sound_thunder)};
           const auto index = id(${dev}_sound).active_index();
           if (!index.has_value() || *index == 0) {
             id(${dev}_play_halloween_sound).execute();
