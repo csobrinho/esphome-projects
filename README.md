@@ -2,7 +2,7 @@
 
 Modular [ESPHome](https://esphome.io/) configs: board bases, addons to mix and match, and the device configs built from them. Devices pull these files straight from this repository with ESPHome's [package system](https://esphome.io/components/packages/), so a change here reaches every device on its next build.
 
-All bases require ESPHome 2026.9.1 or newer.
+Each base sets the oldest ESPHome version it builds with (`min_version`).
 
 ## Repository Structure
 
