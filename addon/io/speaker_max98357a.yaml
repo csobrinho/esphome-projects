@@ -12,7 +12,8 @@
 #
 # Sized for chips without PSRAM (ESP32-C3): one announcement pipeline, 16 kHz mono WAV and a small
 # buffer. Home Assistant transcodes TTS and media to that format. On-device files (audio_file:) must
-# be 16 kHz, mono, 16-bit WAV. Play them with announcement: true, the only pipeline here.
+# be 16 kHz mono, as 16-bit WAV or MP3 (about 5x smaller at 48 kbps). Play them with
+# announcement: true, the only pipeline here.
 i2s_audio:
   - id: ${dev}_i2s # https://esphome.io/components/i2s_audio/
     i2s_bclk_pin: ${i2s_bclk_pin}
