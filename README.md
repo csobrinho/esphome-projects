@@ -10,9 +10,9 @@ Each base sets the oldest ESPHome version it builds with (`min_version`).
 ├── base/          # Board configs, each with the addons every device on that board gets
 ├── addon/         # Features: logging, OTA, buttons, Bluetooth, status LED, time window, ...
 │   ├── io/        # Hardware: camera, I2C, PSRAM, CW/WW light and its Halloween effects, MAX98357A speaker
-│   └── sounds/    # Sound clips, with a select and a button to play them
+│   └── sounds/    # Plays sound clips, with a select and a button
 ├── devices/       # Configs for specific devices
-├── sounds/        # WAV clips for addon/sounds/
+├── sounds/        # Sound clips
 └── templates/     # Starting points for a new device
 ```
 
