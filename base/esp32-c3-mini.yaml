@@ -2,7 +2,7 @@ esphome:
   name: "${name}"
   friendly_name: "${friendly_name}"
   area: "${area}"
-  min_version: 2026.9.1
+  min_version: 2026.10.0
   name_add_mac_suffix: false
   project:
     name: "${project}"
@@ -13,6 +13,10 @@ esp32:
   framework:
     type: esp-idf
     version: recommended
+    advanced:
+      # Links only the generic SPI flash driver, the one the C3 SuperMini's flash runs on; the
+      # vendor drivers would sit unused in IRAM.
+      flash_chip: generic
 
 packages:
   - !include ../addon/logger.yaml
