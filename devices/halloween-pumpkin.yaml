@@ -7,7 +7,7 @@
 #  - MAX98357A amp: VIN -> 5V, GND -> GND, BCLK -> GPIO6, LRC -> GPIO7, DIN -> GPIO10.
 #
 # Onboard BOOT button (GPIO9): click = next effect, double-click = jump scare, hold 1 s = on/off.
-# Every scare plays a random Halloween sound; set halloween_sounds: sounds to use your own clips.
+# Every scare plays a random clip from audio_file: below.
 # Quiet hours (quiet_hours_start to quiet_hours_end, Home Assistant's time zone): the pumpkin is off
 # and only the PIR wakes it, for a single scare.
 substitutions:
@@ -23,6 +23,7 @@ substitutions:
   # "HH:MM", quoted (unquoted YAML reads 20:30 as a number). The window may span midnight.
   quiet_hours_start: "20:30"
   quiet_hours_end: "07:30"
+  repo_sounds: https://raw.githubusercontent.com/csobrinho/esphome-projects/main/sounds/halloween
 
 api:
   encryption:
@@ -44,10 +45,40 @@ packages:
         vars: { name: "Pumpkin", dev: "pumpkin" }
       - path: addon/io/speaker_max98357a.yaml
         vars: { name: "Pumpkin", dev: "pumpkin", i2s_bclk_pin: GPIO6, i2s_lrclk_pin: GPIO7, i2s_dout_pin: GPIO10 }
-      - path: addon/sounds/halloween.yaml
-        vars: { dev: "pumpkin" }
+      - path: addon/sounds/soundboard.yaml
+        vars:
+          dev: "pumpkin"
+          sounds:
+            Evil Laugh: pumpkin_sound_evil_laugh
+            Maniac Laugh: pumpkin_sound_maniac_laugh
+            Witch Cackle: pumpkin_sound_witch_cackle
+            Long Evil Laugh: pumpkin_sound_long_evil_laugh
+            Witches Laughing: pumpkin_sound_witches_laughing
+            Some Laughs: pumpkin_sound_some_laughs
+            Beetlejuice: pumpkin_sound_beetlejuice
+            Keep the Change: pumpkin_sound_keep_the_change
+            Cooking Frankie: pumpkin_sound_cooking_frankie
+            Trick or Treat: pumpkin_sound_trick_or_treat
+            Happy Halloween: pumpkin_sound_happy_halloween
+            School of Roars: pumpkin_sound_school_of_roars
+            Spooky Tree: pumpkin_sound_spooky_tree
       - path: addon/time_window.yaml
         vars: { id: "pumpkin_quiet_hours", window_start: "${quiet_hours_start}", window_end: "${quiet_hours_end}" }
+
+audio_file: # https://esphome.io/components/audio_file/
+  - { id: pumpkin_sound_evil_laugh, file: "${repo_sounds}/evil_laugh.mp3" }
+  - { id: pumpkin_sound_maniac_laugh, file: "${repo_sounds}/maniac_laugh.mp3" }
+  - { id: pumpkin_sound_witch_cackle, file: "${repo_sounds}/witch_cackle.mp3" }
+  - { id: pumpkin_sound_long_evil_laugh, file: "${repo_sounds}/long_evil_laugh.mp3" }
+  - { id: pumpkin_sound_witches_laughing, file: "${repo_sounds}/witches_laughing.mp3" }
+  - { id: pumpkin_sound_some_laughs, file: "${repo_sounds}/some_laughs.mp3" }
+  - { id: pumpkin_sound_beetlejuice, file: "${repo_sounds}/beetlejuice.mp3" }
+  - { id: pumpkin_sound_keep_the_change, file: "${repo_sounds}/keep_the_change.mp3" }
+  - { id: pumpkin_sound_cooking_frankie, file: "${repo_sounds}/cooking_frankie.mp3" }
+  - { id: pumpkin_sound_trick_or_treat, file: "${repo_sounds}/trick_or_treat.mp3" }
+  - { id: pumpkin_sound_happy_halloween, file: "${repo_sounds}/happy_halloween.mp3" }
+  - { id: pumpkin_sound_school_of_roars, file: "${repo_sounds}/school_of_roars.mp3" }
+  - { id: pumpkin_sound_spooky_tree, file: "${repo_sounds}/spooky_tree.mp3" }
 
 esphome:
   on_boot:
@@ -88,7 +119,7 @@ select:
             lambda: return x == "Scare";
           then:
             - delay: 550ms # Land on the cold blast after the effect's 600 ms of darkness.
-            - script.execute: pumpkin_play_halloween_sound
+            - script.execute: pumpkin_play_random_sound
 
 binary_sensor:
   - platform: gpio # https://esphome.io/components/binary_sensor/gpio/

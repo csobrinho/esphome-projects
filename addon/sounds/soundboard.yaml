@@ -1,0 +1,52 @@
+# Sound clips with a random-clip script, a Sound select and a Play Sound button.
+# https://esphome.io/components/audio_file/
+#
+# Plays on the media player from addon/io/speaker_max98357a.yaml. Include after it, with the same
+# dev var and a map of select option -> audio_file id, in the order the select lists them:
+#  dev: "pumpkin"
+#  sounds:
+#    Evil Laugh: pumpkin_sound_evil_laugh
+#    Witch Cackle: pumpkin_sound_witch_cackle
+#
+# The clips themselves go under audio_file: in the device config.
+#
+# Provides:
+#  - script ${dev}_play_random_sound: plays one clip at random, never the same one twice in a row.
+#  - select "Sound" (id ${dev}_sound) and button "Play Sound": the button plays the selected clip,
+#    or a random one for Random.
+script:
+  - id: ${dev}_play_random_sound
+    then:
+      - lambda: |-
+          // Element type deduced from the ids, so it matches play_file() whether it takes a const pointer or not.
+          const std::array sounds{id(${ sounds.values() | join("), id(") })};
+          static size_t last = SIZE_MAX;
+          size_t pick = random_uint32() % sounds.size();
+          if (pick == last) pick = (pick + 1) % sounds.size();
+          last = pick;
+          id(${dev}_audio).play_file(sounds[pick], true, false);
+
+select:
+  - platform: template # https://esphome.io/components/select/template/
+    id: ${dev}_sound
+    name: Sound
+    icon: mdi:music-box
+    options: '${ ["Random"] + (sounds | list) }'
+    initial_option: Random
+    optimistic: true
+    restore_value: true
+
+button:
+  - platform: template # https://esphome.io/components/button/template/
+    id: ${dev}_play_sound
+    name: Play Sound
+    icon: mdi:play
+    on_press:
+      - lambda: |-
+          const std::array sounds{id(${ sounds.values() | join("), id(") })};
+          const auto index = id(${dev}_sound).active_index();
+          if (!index.has_value() || *index == 0) {
+            id(${dev}_play_random_sound).execute();
+          } else {
+            id(${dev}_audio).play_file(sounds[*index - 1], true, false);
+          }
