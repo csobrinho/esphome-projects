@@ -63,6 +63,11 @@ packages:
             School of Roars: pumpkin_sound_school_of_roars
             Spooky Tree: pumpkin_sound_spooky_tree
             Let Me Out: pumpkin_sound_let_me_out
+            It's Alive: pumpkin_sound_its_alive
+            Here's Johnny: pumpkin_sound_heres_johnny
+            Meddling Kids: pumpkin_sound_meddling_kids
+            Put That Thing Back: pumpkin_sound_put_that_thing_back
+            Scary Movie: pumpkin_sound_scary_movie
       - path: addon/time_window.yaml
         vars: { id: "pumpkin_quiet_hours", window_start: "${quiet_hours_start}", window_end: "${quiet_hours_end}" }
 
@@ -81,6 +86,11 @@ audio_file: # https://esphome.io/components/audio_file/
   - { id: pumpkin_sound_school_of_roars, file: "${repo_sounds}/school_of_roars.mp3" }
   - { id: pumpkin_sound_spooky_tree, file: "${repo_sounds}/spooky_tree.mp3" }
   - { id: pumpkin_sound_let_me_out, file: "${repo_sounds}/let_me_out.mp3" }
+  - { id: pumpkin_sound_its_alive, file: "${repo_sounds}/its_alive.mp3" }
+  - { id: pumpkin_sound_heres_johnny, file: "${repo_sounds}/heres_johnny.mp3" }
+  - { id: pumpkin_sound_meddling_kids, file: "${repo_sounds}/meddling_kids.mp3" }
+  - { id: pumpkin_sound_put_that_thing_back, file: "${repo_sounds}/put_that_thing_back.mp3" }
+  - { id: pumpkin_sound_scary_movie, file: "${repo_sounds}/scary_movie.mp3" }
 
 esphome:
   on_boot:
