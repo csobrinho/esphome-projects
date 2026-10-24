@@ -62,6 +62,7 @@ packages:
             Happy Halloween: pumpkin_sound_happy_halloween
             School of Roars: pumpkin_sound_school_of_roars
             Spooky Tree: pumpkin_sound_spooky_tree
+            Let Me Out: pumpkin_sound_let_me_out
       - path: addon/time_window.yaml
         vars: { id: "pumpkin_quiet_hours", window_start: "${quiet_hours_start}", window_end: "${quiet_hours_end}" }
 
@@ -79,6 +80,7 @@ audio_file: # https://esphome.io/components/audio_file/
   - { id: pumpkin_sound_happy_halloween, file: "${repo_sounds}/happy_halloween.mp3" }
   - { id: pumpkin_sound_school_of_roars, file: "${repo_sounds}/school_of_roars.mp3" }
   - { id: pumpkin_sound_spooky_tree, file: "${repo_sounds}/spooky_tree.mp3" }
+  - { id: pumpkin_sound_let_me_out, file: "${repo_sounds}/let_me_out.mp3" }
 
 esphome:
   on_boot:
