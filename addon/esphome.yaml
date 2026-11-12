@@ -1,0 +1,12 @@
+# Core settings https://esphome.io/components/esphome/
+#
+# Shared by every base, so all devices require the same ESPHome version. Bump min_version here.
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${area}"
+  min_version: 2026.10.0
+  name_add_mac_suffix: false
+  project:
+    name: "${project}"
+    version: "${version}"

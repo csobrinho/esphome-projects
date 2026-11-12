@@ -1,13 +1,3 @@
-esphome:
-  name: "${name}"
-  friendly_name: "${friendly_name}"
-  area: "${area}"
-  min_version: 2026.9.1
-  name_add_mac_suffix: false
-  project:
-    name: "${project}"
-    version: "${version}"
-
 esp32:
   board: esp32cam
   framework:
@@ -16,6 +6,7 @@ esp32:
       minimum_chip_revision: "3.1"
 
 packages:
+  - !include ../addon/esphome.yaml
   - !include ../addon/io/i2c.yaml
   - !include ../addon/io/camera.yaml
   - !include ../addon/io/psram.yaml
