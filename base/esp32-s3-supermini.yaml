@@ -22,6 +22,8 @@ wifi:
 
 packages:
   - !include ../addon/io/psram.yaml
+  - !include ../addon/bluetooth_ble.yaml
+  - !include ../addon/bluetooth_proxy.yaml
   - !include ../addon/logger.yaml
   - !include ../addon/network.yaml
   - !include ../addon/ota.yaml
