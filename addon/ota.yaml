@@ -1,3 +1,4 @@
 # OTA updates https://esphome.io/components/ota/
 ota:
   platform: esphome
+  encryption: {} # Uses the api encryption key.
