@@ -1,0 +1,114 @@
+# Downstairs closet fan – bench test (ESP32-S3 SuperMini)
+#
+# Wiring:
+#  - GPIO4 -> R1 10k -> BC547C base (R2 100k base->GND), collector -> fan D+ (A6/B6), emitter -> GND.
+#  - GPIO5 <- BAT85 anode | cathode (band) -> fan D- (A7/B7) (internal pull-up on GPIO5).
+#  - GPIO6 <-> DS18B20 data (4.7k pull-up DQ -> 3V3), probe VDD -> 3V3, GND -> GND.
+#  - GND -- fan GND (A1/A12/B1/B12).
+#  - Fan VBUS (10 V) is NOT connected while the board is powered from its own USB-C.
+substitutions:
+  name: closet-climate-control
+  friendly_name: Downstairs Closet Climate Control
+  area: Downstairs Closet
+  project: climate.closet
+  version: "1.0"
+  pulses_per_rev: "3" # Tach pulses per revolution – verify, may be 2.
+
+api:
+  encryption:
+    key: !secret encryption_key
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+packages:
+  base:
+    url: https://github.com/csobrinho/esphome-projects/
+    refresh: 1sec
+    ref: main
+    files: [base/esp32-s3-supermini.yaml]
+
+# ---------------- Fan speed (PWM on D+) ----------------
+# BC547C inverts: GPIO high pulls D+ low (slower). "inverted" makes 100% = D+ always high = full speed.
+output:
+  - platform: ledc
+    id: fan_pwm
+    pin: GPIO4
+    frequency: 5000 Hz
+    inverted: true
+    min_power: 10% # Slowest speed the fan runs reliably.
+    # zero_means_zero: true
+
+fan:
+  - platform: speed
+    id: closet_fan
+    name: Fan
+    output: fan_pwm
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_ON
+
+# ---------------- Tach (D-) + temperatures ----------------
+one_wire:
+  - platform: gpio
+    id: ow_bus
+    pin: GPIO6
+
+sensor:
+  - platform: pulse_meter
+    id: fan_rpm
+    name: Fan RPM
+    pin:
+      number: GPIO5
+      mode:
+        input: true
+        pullup: true
+    internal_filter: 1ms # Ignore any blip shorter than 1 ms.
+    internal_filter_mode: PULSE
+    timeout: 5s # Report 0 if no pulse for 5 s (default is 5 min).
+    unit_of_measurement: RPM
+    icon: mdi:fan
+    accuracy_decimals: 0
+    filters:
+      - throttle_average: 5s # It publishes on almost every loop otherwise.
+      - lambda: return x / ${pulses_per_rev};
+
+  - platform: dallas_temp
+    id: probe_1
+    name: Probe 1
+    index: 0
+    update_interval: 10s
+    on_value:
+      - lambda: |-
+          const auto &a = id(probe_1).get_address_name();
+          if (id(probe_1_id).state != a) id(probe_1_id).publish_state(a);
+
+  - platform: dallas_temp
+    id: probe_2
+    name: Probe 2
+    index: 1
+    update_interval: 10s
+    on_value:
+      - lambda: |-
+          const auto &a = id(probe_2).get_address_name();
+          if (id(probe_2_id).state != a) id(probe_2_id).publish_state(a);
+
+binary_sensor:
+  - platform: template
+    name: Fan stalled
+    device_class: problem
+    lambda: return id(closet_fan).state && id(fan_rpm).state < 100;
+    filters: [delayed_on: 30s]
+
+# ROM ID of each probe, so you can tell them apart and later pin them with "address:".
+text_sensor:
+  - platform: template
+    id: probe_1_id
+    name: Probe 1 ID
+    icon: mdi:identifier
+    entity_category: diagnostic
+
+  - platform: template
+    id: probe_2_id
+    name: Probe 2 ID
+    icon: mdi:identifier
+    entity_category: diagnostic

@@ -1,13 +1,3 @@
-esphome:
-  name: "${name}"
-  friendly_name: "${friendly_name}"
-  area: "${area}"
-  min_version: 2026.10.0
-  name_add_mac_suffix: false
-  project:
-    name: "${project}"
-    version: "${version}"
-
 esp32:
   variant: esp32c3
   framework:
@@ -19,6 +9,7 @@ esp32:
       flash_chip: generic
 
 packages:
+  - !include ../addon/esphome.yaml
   - !include ../addon/logger.yaml
   - !include ../addon/network.yaml
   - !include ../addon/ota.yaml

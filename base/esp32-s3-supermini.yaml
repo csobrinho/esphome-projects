@@ -1,0 +1,25 @@
+esp32:
+  variant: esp32s3
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+    version: recommended
+    advanced:
+      flash_chip: generic # Skip the unused vendor flash drivers.
+
+wifi:
+  output_power: 10dB # SuperMini boards drop Wi-Fi at full power.
+
+packages:
+  - !include ../addon/esphome.yaml
+  - !include ../addon/io/psram.yaml
+  - !include ../addon/bluetooth_ble.yaml
+  - !include ../addon/bluetooth_proxy.yaml
+  - !include ../addon/logger.yaml
+  - !include ../addon/network.yaml
+  - !include ../addon/ota.yaml
+  - !include ../addon/restart.yaml
+  - !include ../addon/safe_mode.yaml
+  - !include ../addon/factory_reset.yaml
+  - !include ../addon/time.yaml
+  - !include ../addon/webserver.yaml
