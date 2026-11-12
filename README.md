@@ -5,7 +5,7 @@ This repository provides a collection of modular ESPHome configuration templates
 ## Purpose
 
 This repository serves as a centralized collection of:
-- **Base configurations** for popular development boards (ESP32, ESP32-C3, ...)
+- **Base configurations** for popular development boards (ESP32, ESP32-C3, ESP32-S3, ...)
 - **Modular addons** for common sensors and features (Bluetooth, motion detection, etc.)
 - **Interface configurations** for communication protocols (I2C)
 - **Ready-to-use templates** that combine these components for specific use cases
@@ -18,6 +18,7 @@ The templates in the `templates/` directory are ready to be used directly in ESP
 
 - **ESP32 Dev board** (`templates/esp32-dev.yaml`) - Vanilla board for ESP32.
 - **ESP32-C3 Mini board** (`templates/esp32-c3-mini.yaml`) - Vanilla board for ESP32-C3.
+- **ESP32-S3 SuperMini board** (`templates/esp32-s3-supermini.yaml`) - Vanilla board for ESP32-S3.
 
 ## Repository Structure
 

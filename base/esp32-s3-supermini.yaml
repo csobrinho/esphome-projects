@@ -1,0 +1,36 @@
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${area}"
+  min_version: 2026.10.0
+  name_add_mac_suffix: false
+  project:
+    name: "${project}"
+    version: "${version}"
+
+esp32:
+  variant: esp32s3
+  # The S3 SuperMini's ESP32-S3FH4R2 has 4 MB of in-package flash.
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+    version: recommended
+    advanced:
+      # Links only the generic SPI flash driver, the one the S3 SuperMini's flash runs on; the
+      # vendor drivers would sit unused in IRAM.
+      flash_chip: generic
+
+wifi:
+  # Caps transmit power; SuperMini boards are known to drop Wi-Fi at full power.
+  output_power: 10dB
+
+packages:
+  - !include ../addon/io/psram.yaml # The ESP32-S3FH4R2 also carries 2 MB of quad PSRAM.
+  - !include ../addon/logger.yaml
+  - !include ../addon/network.yaml
+  - !include ../addon/ota.yaml
+  - !include ../addon/restart.yaml
+  - !include ../addon/safe_mode.yaml
+  - !include ../addon/factory_reset.yaml
+  - !include ../addon/time.yaml
+  - !include ../addon/webserver.yaml
