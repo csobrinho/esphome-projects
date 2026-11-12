@@ -7,6 +7,9 @@ esp32:
     advanced:
       flash_chip: generic # Skip the unused vendor flash drivers.
 
+psram:
+  mode: quad # The ESP32-S3FH4R2's 2 MB PSRAM is quad, not octal.
+
 wifi:
   output_power: 10dB # SuperMini boards drop Wi-Fi at full power.
 
